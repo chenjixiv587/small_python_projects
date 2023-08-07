@@ -21,7 +21,7 @@ def main():
         secretNum = getSecretNum()
         print('I have thought up a number.')
         print(f'You have {MAX_GUESSES} guesses to get it.')
-        
+
         numGuesses = 1
         while numGuesses <= MAX_GUESSES:
             guess = ''
@@ -49,7 +49,7 @@ def main():
 def getSecretNum():
     """Return a string made up of NUM_DIGITS unique random digits"""
     numbers = list('0123456789')  # Create a list of digits 0 to 9
-    random.shuffle(numbers) # Shuffle them into random order
+    random.shuffle(numbers)  # Shuffle them into random order
 
     # Get the first NUM_DIGITS digits in the list for the secret number
     secretNum = ''
@@ -58,7 +58,7 @@ def getSecretNum():
     return secretNum
 
 
-def getClues(guess:str, secretNum:str):
+def getClues(guess: str, secretNum: str):
     """Return a strig with the pico fermi bagels clues for a guess
     and secret number pair"""
     if guess == secretNum:
