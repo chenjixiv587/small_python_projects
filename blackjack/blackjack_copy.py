@@ -7,6 +7,7 @@ import random
 
 
 # Set up the constants:
+# suit
 HEARTS = chr(9829)  # Character 9829 is '♥'
 DIAMONDS = chr(9830)  # Cjaracter 9830 is '♦'
 SPADES = chr(9824)  # Character 9824 is '♠'
@@ -34,11 +35,14 @@ def main():
         # Check if the user has run out of money.
         if money <= 0:
             print('You are broke!')
-            print("The only fortunate thing is you weren't play the true game")
+            print("The only fortunate thing is that you weren't play the true \
+                  game")
             print("Thanks for playing")
             sys.exit()
         # Let the user enter his bet in this round
         print(f'Money: {money}')
+
+        # give the bet.
         bet = getBet(money)
 
         # Give the dealer and player each 2 cards from the deck
@@ -70,7 +74,7 @@ def main():
                 print(f"You drew a {rank} of {suit}")
                 playerHand.append(newCard)
 
-                if getHandValue > 21:
+                if getHandValue(playerHand) > 21:
                     # The player has busted
                     continue
 
@@ -93,32 +97,146 @@ def main():
         displayHands(playerHand, dealerHand, True)
 
         playerValue = getHandValue(playerHand)
-        dealerHand = getHandValue(dealerHand)
+        dealerValue = getHandValue(dealerHand)
         # Handle whether the player won, lost, or tied.
+        if dealerValue > 21:
+            print(f"Dealer Busts! You win {bet}")
+            money += bet
+        elif (playerValue > 21) or (playerValue < dealerValue):
+            print("You are lost!")
+            money -= bet
+        elif playerValue > dealerValue:
+            print(f"You won {bet}")
+            money += bet
+        elif playerValue == dealerValue:
+            print("It's a tie, the bet is returned to you.")
+
+        input("Press enter to continue")
+        print("\n\n")
 
 
-def getBet(money: int):
-    """Reteturn the bet"""
-    pass
+def getBet(maxBet: int):
+    """Reteturn the bet
+    Ask the player how much they want to bet for this round.
+    """
+    while True:  # Keep asking until they enter a valid data
+        print(f"How much do you bet, (1- {maxBet} or QUIT)")
+        bet = input("> ").upper().strip()
+        if bet == "QUIT":
+            print("Thanks for playing")
+            sys.exit()
+        if not bet.isdecimal():
+            continue
+        bet = int(bet)
+        if 1 <= bet <= maxBet:
+            return bet  # Player entered a valid bet.
 
 
 def getDeck():
-    """Retrun a list that includes cards"""
-    pass
+    """Retrun a list of (rank, suit) tuples for all 52 cards"""
+    deck = []
+    # suit 表示花色 rank 表示点数
+    for suit in (HEARTS, DIAMONDS, SPADES, CLUBS):
+        for rank in range(2, 11):
+            deck.append((str(rank), suit))  # Add the numbered cards
+        for rank in ("J", "Q", "K", "A"):
+            deck.append((rank, suit))  # Add the face and ace cards
+
+    random.shuffle(deck)
+    return deck
 
 
-def displayHands(playerHand: list, dealerHand: list, status: bool):
-    pass
+def displayHands(playerHand: list, dealerHand: list, showDealerHand: bool):
+    """Show the play's and dealer's cards, Hide the dealer's first card if showDealerHand is Fasle"""
+    print()
+    if showDealerHand:
+        print("DEALER: ", getHandValue(dealerHand))
+        displayCards(dealerHand)
+    else:
+        print("DEALER: ???")
+        # Hide the dealer's first card.
+        displayCards([BACKSIDE] + dealerHand[1:])
+
+    # Show the player's cards
+    print("PLAYER: ", getHandValue(playerHand))
+    displayCards(playerHand)
 
 
-def getHandValue(hand: list):
-    pass
+def getHandValue(cards: list):
+    """Retrun the value of the cards. Face cards are worth 10, 
+    aces are worth 11 or 1, (This dfunction picks the most suitable ace value)"""
+    value = 0
+    numberOfAces = 0
+
+    # Add the value for the non-ace cards
+    for card in cards:
+        rank = card[0]  # card is a tuple like (rank, suit)
+        if rank == "A":
+            numberOfAces += 1
+        elif rank in ("J", "Q", "K"):  # Face cards are worth 10 points.
+            value += 10
+        else:
+            value += int(rank)  # Numbered cards are worth their number.
+
+    # Add the value for the aces
+    value += numberOfAces  # Add one per ace
+    for i in range(0, numberOfAces):
+        # If another 10 can be added without busting, do so
+        tempValue = value + 10
+        if tempValue <= 21:
+            value += 10
+    return value
 
 
-def getMove(hand: list, money: int):
-    """Return the action string lile H D S """
-    pass
+def displayCards(cards: list):
+    """Display all cards in the cards list"""
+    # rows = ['', '', '', '', '']
+    rows = ['']*5  # The text to display on each row
+
+    for i, card in enumerate(cards):
+        rows[0] += ' ____ '  # Print the top line of the card
+        if card == BACKSIDE:
+            # Print a card's back.
+            rows[1] += '|## | '
+            rows[2] += '|###| '
+            rows[3] += '|_##| '
+        else:
+            # Print the card's front
+            rank, suit = card  # The card is a tuple data structure
+            rows[1] += '|{} | '.format(rank.ljust(2))
+            rows[2] += '| {} | '.format(suit)
+            rows[3] += '|_{}| '.format(rank.rjust(2, "_"))
+            # >>> chr(9827).ljust(2)
+            # '♣ '
+            # >>> chr(9827).rjust(2, "_")
+            # '_♣'
+            # Print each row on the screen.
+    for row in rows:
+        print(row)
 
 
+def getMove(playerHand: list, money: int):
+    """Ask the player for their move, and returns 'H' for hit,
+    'S' for stand, and 'D' for double down."""
+
+    while True:  # Keep looping until the player enters a correct move.
+        # Determine what moves the player can make
+        moves = ["(H)it", "(S)tand"]
+
+        # The player can double down on their first move, which we can
+        # tell because they'll have exactly two cards
+        if len(playerHand) == 2 and money > 0:
+            moves.append("(D)ouble down")
+
+        # Get the player's move
+        movePrompt = ", ".join(moves) + "> "
+        move = input(movePrompt).upper()
+        if move in ("H", "S"):
+            return move  # Player has entered a valid move.
+        if move == "D" and ("(D)ouble down" in moves):
+            return move  # Player has entered a valid move.
+
+
+# If the program is run(instead of imported), run the game:
 if __name__ == '__main__':
     main()
