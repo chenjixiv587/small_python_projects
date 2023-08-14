@@ -9,7 +9,6 @@ import random
 # set up the constants
 # set up the window
 WIDTH, HEIGHT = bext.size()
-
 WIDTH -= 1
 # set up the logo
 
