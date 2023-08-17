@@ -49,7 +49,11 @@ def getCalendarFor(year: int, month: int):
         rowDays = ""
         # show the each row of the day
         for i in range(0, 7):
-            dayNumberLabel = str(currentDate.day).rjust(2)
+            if currentDate.weekday() == 5 or currentDate.weekday() == 6:
+                print("free")
+                dayNumberLabel = str(currentDate.day).rjust(2) + " free "
+            else:
+                dayNumberLabel = str(currentDate.day).rjust(2)
             rowDays += "|" + dayNumberLabel + " " * 7
             # get the next day
             currentDate += datetime.timedelta(days=1)
