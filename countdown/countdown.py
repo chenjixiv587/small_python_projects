@@ -1,6 +1,6 @@
 import time
 import sys
-import sevseg
+import digitalclock.sevseg as sevseg
 
 
 print("please enter the valid seconds")
